@@ -64,23 +64,10 @@ class Player {
         if (this.XVelocity > this.maxSpeed) {
             this.XVelocity = this.maxSpeed - 0.1
         }
-        if (currentWorld === space) {
-            if (this.bounds.y <= (space.bounds.y - space.bounds.h)) {
-                this.bounds.y = space.bounds.y - space.bounds.h + 50
-                this.bounds.x -= 50;
-                this.YVelocity = 0;
-            }
-            if (this.bounds.y >= (canvas.height) - this.bounds.h) {
-                this.grounded = true;
-                this.bounds.y = (canvas.height) - (this.bounds.h + 2)
-            }
-
-            console.log(this.bounds.y,space.bounds.y)
-        } 
         if (currentWorld === desert) {
-            if (this.bounds.y >= (canvas.height/2) - this.bounds.h) {
+            if (this.bounds.y >= (desert.cameraBound.y+370) - this.bounds.h) {
                 this.grounded = true;
-                this.bounds.y = (canvas.height/2) - (this.bounds.h + 2)
+                this.bounds.y = (desert.cameraBound.y+370) - (this.bounds.h + 1)
             }
             if (this.bounds.x <= canvas.width/2) {
                 console.log("New WALLED")
@@ -98,9 +85,9 @@ class Player {
             }, 100);
         }
         if (currentWorld === forest) {
-            if (this.bounds.y >= (canvas.height/2) - this.bounds.h) {
+            if (this.bounds.y >= (forest.cameraBound.y+370) - this.bounds.h) {
                 this.grounded = true;
-                this.bounds.y = (canvas.height/2) - (this.bounds.h + 2)
+                this.bounds.y = forest.cameraBound.y+370 - (this.bounds.h + 1)
             }
             if (this.bounds.x + this.bounds.w >= canvas.width/2) {
                 this.bounds.x = ((canvas.width/2)-this.bounds.w-1)
@@ -160,7 +147,7 @@ class Player {
 }
 let forest = new World(0,0);
 let desert = new World(canvas.width/2,0)
-let plains = new World(canvas.width/2,canvas.height/2)
+let arctic = new World(canvas.width/2,canvas.height/2)
 let space = new World(0,425)
 let player = new Player();
 let currentWorld = forest;
@@ -181,8 +168,8 @@ function loop() {
     forest.draw();
     ctx.strokeStyle = "#FAD5A5"
     desert.draw();
-    ctx.strokeStyle = "#c0ff6d"
-    plains.draw();
+    ctx.strokeStyle = "blue"
+    arctic.draw();
     ctx.strokeStyle = "black"
     space.draw();
     console.log(currentKey)
