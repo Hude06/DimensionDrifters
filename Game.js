@@ -47,6 +47,26 @@ class Player {
 
             console.log(this.bounds.y,space.bounds.y)
         } 
+        if (currentWorld === desert) {
+            if (this.bounds.y >= (canvas.height/2) - this.bounds.h) {
+                this.grounded = true;
+                this.bounds.y = (canvas.height/2) - (this.bounds.h + 2)
+            }
+            if (this.bounds.x <= canvas.width/2) {
+                console.log("New WALLED")
+                this.bounds.x = ((canvas.width/2 + 1))
+                this.WALLED = true;
+                this.XVelocity = 0;
+                this.friction = 0;
+            } else {
+                this.WALLED = false;
+            }
+            setTimeout(() => {
+                if (this.WALLED && currentKey.get(" ")) {
+                    currentWorld = forest
+                }
+            }, 100);
+        }
         if (currentWorld === forest) {
             if (this.bounds.y >= (canvas.height/2) - this.bounds.h) {
                 this.grounded = true;
@@ -60,9 +80,11 @@ class Player {
             } else {
                 this.WALLED = false;
             }
-            if (this.WALLED && currentKey.get(" ")) {
-                currentWorld = space
-            }
+            setTimeout(() => {
+                if (this.WALLED && currentKey.get(" ")) {
+                    currentWorld = desert
+                }
+            }, 100);
         }
         if (this.grounded) {
             if (currentKey.get(" ")) {
@@ -110,10 +132,15 @@ function loop() {
     ctx.clearRect(0,0,canvas.width,canvas.height)
     player.draw();
     player.update();
+    ctx.strokeStyle = "#228B22"
     forest.draw();
+    ctx.strokeStyle = "#FAD5A5"
     desert.draw();
+    ctx.strokeStyle = "#c0ff6d"
     plains.draw();
+    ctx.strokeStyle = "black"
     space.draw();
+    console.log(currentKey)
     requestAnimationFrame(loop)
 }
 function init() {
