@@ -5,10 +5,13 @@ let currentKey = new Map();
 class World {
     constructor(x,y) {
         this.bounds = new Rect(x,y,canvas.width/2,canvas.height/2)
+        this.cameraBound = new Rect(x+25,y+25,canvas.width/2-50,canvas.height/2-50)
     }
     draw() {
         ctx.lineWidth = 5
         ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        ctx.lineWidth = 6;
+        ctx.strokeRect(this.cameraBound.x,this.cameraBound.y,this.cameraBound.w,this.cameraBound.h)
     }
 }
 class Player {
@@ -115,7 +118,7 @@ class Player {
         }
         if (currentKey.get(" ") && this.grounded) {
             this.grounded = false
-            this.YVelocity -= 10
+            this.YVelocity -= 4
             this.TotalFrames = 12
             this.image.src = "./Assets/ChikBoy/ChikBoy_jump.png"
         }
@@ -134,6 +137,7 @@ class Player {
 
         } else {
             if (this.grounded) {
+                this.YVelocity = 0;
                 if ((Math.floor(Math.round(this.XVelocity)) !== 0)) {
                     this.TotalFrames = 4;
                     this.image.src = "./Assets/ChikBoy/ChikBoy_floor_slide.png"
@@ -157,7 +161,7 @@ class Player {
 let forest = new World(0,0);
 let desert = new World(canvas.width/2,0)
 let plains = new World(canvas.width/2,canvas.height/2)
-let space = new World(0,canvas.height)
+let space = new World(0,425)
 let player = new Player();
 let currentWorld = forest;
 
