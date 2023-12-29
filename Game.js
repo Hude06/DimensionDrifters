@@ -13,7 +13,9 @@ class World {
 }
 class Player {
     constructor() {
-        this.bounds = new Rect(canvas.width/2-200,10,25,25)
+        this.bounds = new Rect(canvas.width/2-200,10,65,65)
+        this.image = new Image();
+        this.image.src = "./Assets/ChikBoy/ChikBoy_idle.png"
         this.speed = 1;
         this.XVelocity = 0;
         this.gravity = 0.1;
@@ -22,9 +24,35 @@ class Player {
         this.friction = 0;
         this.maxSpeed = 5;
         this.WALLED = false;
+        this.AnimationY = 0;
+        this.frameIncerment = 2;
+        this.frameRate = 0;
+        this.frameMax = 16;
+        this.TotalFrames = 6;
+        this.FLIPPED = false;
     }
     draw() {
-        ctx.fillRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        ctx.imageSmoothingEnabled = false;
+        ctx.strokeStyle = "red"
+        ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+        if (this.FLIPPED) {
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(this.image, 0, this.AnimationY, 32, 32, -this.bounds.x - this.bounds.w, this.bounds.y, this.bounds.w, this.bounds.h);
+            ctx.restore(); // Use restore to revert the transformation
+        } else {
+            ctx.drawImage(this.image, 0, this.AnimationY, 32, 32, this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
+        }
+        
+        this.frameRate += this.frameIncerment
+        if (this.AnimationY < this.TotalFrames * 32) {
+            if (Math.floor(Math.round(this.frameRate)) === this.frameMax) {
+                this.AnimationY += 32
+                this.frameRate = 0
+            }            
+        } else {
+            this.AnimationY = 0;
+        }
     }
     update() {
         this.YVelocity += this.gravity
@@ -32,7 +60,6 @@ class Player {
         this.bounds.x += this.XVelocity;
         if (this.XVelocity > this.maxSpeed) {
             this.XVelocity = this.maxSpeed - 0.1
-
         }
         if (currentWorld === space) {
             if (this.bounds.y <= (space.bounds.y - space.bounds.h)) {
@@ -86,20 +113,34 @@ class Player {
                 }
             }, 100);
         }
-        if (this.grounded) {
-            if (currentKey.get(" ")) {
-                this.grounded = false
-                this.YVelocity -= 10
-            }
+        if (currentKey.get(" ") && this.grounded) {
+            this.grounded = false
+            this.YVelocity -= 10
+            this.TotalFrames = 12
+            this.image.src = "./Assets/ChikBoy/ChikBoy_jump.png"
         }
         if (currentKey.get("a") || currentKey.get("ArrowLeft")) {
             this.XVelocity -= 0.1
             this.friction = 0
+            this.TotalFrames = 6;
+            this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
+            this.FLIPPED = true;
         } else if (currentKey.get("d") || currentKey.get("ArrowRight")) {
             this.XVelocity += 0.1
             this.friction = 0
+            this.TotalFrames = 6;
+            this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
+            this.FLIPPED = false;
+
         } else {
             if (this.grounded) {
+                if ((Math.floor(Math.round(this.XVelocity)) !== 0)) {
+                    this.TotalFrames = 4;
+                    this.image.src = "./Assets/ChikBoy/ChikBoy_floor_slide.png"
+                } else {
+                    this.TotalFrames = 6;
+                    this.image.src = "./Assets/ChikBoy/ChikBoy_idle.png"
+                }
                 if ((this.XVelocity) !== 0) {
                     this.friction += 0.005
                     if (this.XVelocity > 0) {
