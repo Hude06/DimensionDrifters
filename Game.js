@@ -6,7 +6,18 @@ let currentKey = new Map();
 let data = null
 class Gost {
     constructor() {
-        
+        this.bounds = new Rect(200,10,40,40)
+        this.image = new Image();
+        this.image.src = "./Gost.png"
+        this.speed = 1;
+        this.FLIPPED = false;
+    }
+    draw() {
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
+    }
+    update() {  
+
     }
 }
 class Player {
@@ -147,6 +158,7 @@ let background = null
 let chain = null;
 let chests = null;
 let player = new Player();
+let gost = new Gost();
 async function ParseTitleData() {
     const response = await fetch("./TileDATA.json");
     const data = await response.json();
@@ -180,6 +192,8 @@ function loop() {
     background.draw();
     chain.draw();
     chests.draw();
+    gost.draw();
+    gost.update();
     //DRAWING EVERYTHING ELSE
     player.update();
     player.draw();
