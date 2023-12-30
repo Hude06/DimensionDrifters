@@ -1,8 +1,11 @@
+import { ParticleSource } from "./Particals.js";
 import {Rect} from "./RectUtils.js"
 let canvas = document.getElementById("canvas")
 let ctx = canvas.getContext("2d")
 let currentKey = new Map();
 let data = null
+let particalEngine = new ParticleSource();
+let particals = false;
 class World {
     constructor(x,y) {
         this.bounds = new Rect(x,y,canvas.width/2,canvas.height/2)
@@ -25,7 +28,8 @@ class Player {
         this.gravity = 0.1;
         this.YVelocity = 0.5;
         this.grounded = false;
-        this.friction = 0;
+        this.friction = 0.01;
+        this.currentFriction = 0;
         this.maxSpeed = 5;
         this.WALLED = false;
         this.AnimationY = 0;
@@ -74,7 +78,7 @@ class Player {
                 this.bounds.x = ((canvas.width/2 + 1))
                 this.WALLED = true;
                 this.XVelocity = 0;
-                this.friction = 0;
+                this.currentFriction = 0;
             } else {
                 this.WALLED = false;
             }
@@ -94,7 +98,7 @@ class Player {
                 background.x -= 1
                 this.WALLED = true;
                 this.XVelocity = 0;
-                this.friction = 0;
+                this.currentFriction = 0;
             } else {
                 this.WALLED = false;
             }
@@ -112,13 +116,13 @@ class Player {
         }
         if (currentKey.get("a") || currentKey.get("ArrowLeft")) {
             this.XVelocity -= 0.1
-            this.friction = 0
+            this.currentFriction = 0
             this.TotalFrames = 6;
             this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
-            this.FLIPPED = true;
+             this.FLIPPED = true;
         } else if (currentKey.get("d") || currentKey.get("ArrowRight")) {
             this.XVelocity += 0.1
-            this.friction = 0
+            this.currentFriction = 0
             this.TotalFrames = 6;
             this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
             this.FLIPPED = false;
@@ -129,17 +133,19 @@ class Player {
                 if ((Math.floor(Math.round(this.XVelocity)) !== 0)) {
                     this.TotalFrames = 4;
                     this.image.src = "./Assets/ChikBoy/ChikBoy_floor_slide.png"
+                    particals = true;
                 } else {
+                    particals = false;
                     this.TotalFrames = 6;
                     this.image.src = "./Assets/ChikBoy/ChikBoy_idle.png"
                 }
                 if ((this.XVelocity) !== 0) {
-                    this.friction += 0.005
+                    this.currentFriction += this.friction
                     if (this.XVelocity > 0) {
-                        this.XVelocity -= this.friction
+                        this.XVelocity -= this.currentFriction
                     }
                     if (this.XVelocity < 0) {
-                        this.XVelocity += this.friction
+                        this.XVelocity += this.currentFriction
                     }
                 }
             }
@@ -147,15 +153,12 @@ class Player {
     }
 }
 const SCALE = 3
-
 const TILE_TO_IMAGE = {
     1:new Image(),
     3: new Image()
 }
 TILE_TO_IMAGE[1].src = "./Assets/Brick.png"
 TILE_TO_IMAGE[3].src = "./Assets/Chain.png"
-
-
 class Layer {
     constructor(layer) {
         this.layer = layer
@@ -197,8 +200,16 @@ function keyboardInit() {
 function loop() {
     ctx.fillStyle = 'white'
     ctx.fillRect(0,0,canvas.width,canvas.height)
+    //BACKGROUND STUFF DRAW ON TOP OF
     background.draw();
     chain.draw();
+    //DRAWING EVERYTHING ELSE
+    particalEngine.draw_particles(ctx);
+    particalEngine.update_particles();
+    console.log(particals)
+    if (particals) {
+        particalEngine.start_particles(player.bounds.x+player.bounds.w/2,player.bounds.y+player.bounds.h-20)
+    }
     player.draw();
     player.update();
     ctx.strokeStyle = "#228B22"
