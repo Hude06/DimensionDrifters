@@ -4,23 +4,15 @@ let canvas = document.getElementById("canvas")
 let ctx = canvas.getContext("2d")
 let currentKey = new Map();
 let data = null
-let particalEngine = new ParticleSource();
-let particals = false;
-class World {
-    constructor(x,y) {
-        this.bounds = new Rect(x,y,canvas.width/2,canvas.height/2)
-        this.cameraBound = new Rect(x+70,y+70,canvas.width/2-150,canvas.height/2-150)
-    }
-    draw() {
-        ctx.lineWidth = 5
-        ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
-        ctx.lineWidth = 6;
-        ctx.strokeRect(this.cameraBound.x,this.cameraBound.y,this.cameraBound.w,this.cameraBound.h)
+class Gost {
+    constructor() {
+        
     }
 }
 class Player {
     constructor() {
         this.bounds = new Rect(canvas.width/2-200,10,65,65)
+        this.wall1 = new Rect(this.bounds.x-10,this.bounds.y,this.bounds.w,this.bounds.h)
         this.image = new Image();
         this.image.src = "./Assets/ChikBoy/ChikBoy_idle.png"
         this.speed = 1;
@@ -36,13 +28,12 @@ class Player {
         this.frameIncerment = 2;
         this.frameRate = 0;
         this.frameMax = 16;
-        this.TotalFrames = 6;
+        this.TotalFrames = 5;
         this.FLIPPED = false;
+
     }
     draw() {
         ctx.imageSmoothingEnabled = false;
-        ctx.strokeStyle = "red"
-        ctx.strokeRect(this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
         if (this.FLIPPED) {
             ctx.save();
             ctx.scale(-1, 1);
@@ -65,48 +56,24 @@ class Player {
         this.YVelocity += this.gravity
         this.bounds.y += this.YVelocity;
         this.bounds.x += this.XVelocity;
+        if (this.XVelocity < 0) {
+            this.wall1.x = this.bounds.x-20,
+            this.wall1.y = this.bounds.y,
+            this.wall1.w = this.bounds.w/2,
+            this.wall1.h = this.bounds.h + 10
+        }
+        if (this.XVelocity > 0) {
+            this.wall1.x = this.bounds.x+60,
+            this.wall1.y = this.bounds.y,
+            this.wall1.w = this.bounds.w/2,
+            this.wall1.h = this.bounds.h + 10
+        }
         if (this.XVelocity > this.maxSpeed) {
             this.XVelocity = this.maxSpeed - 0.1
         }
-        if (currentWorld === Universe2) {
-            if (this.bounds.y >= (Universe2.cameraBound.y+Universe2.cameraBound.h) - this.bounds.h) {
-                this.grounded = true;
-                this.bounds.y = (Universe2.cameraBound.y+Universe2.cameraBound.h) - (this.bounds.h + 1)
-            }
-            if (this.bounds.x <= canvas.width/2) {
-                console.log("New WALLED")
-                this.bounds.x = ((canvas.width/2 + 1))
-                this.WALLED = true;
-                this.XVelocity = 0;
-                this.currentFriction = 0;
-            } else {
-                this.WALLED = false;
-            }
-            setTimeout(() => {
-                if (this.WALLED && currentKey.get(" ")) {
-                    currentWorld = Universe1
-                }
-            }, 100);
-        }
-        if (currentWorld === Universe1) {
-            if (this.bounds.y >= (Universe1.cameraBound.y+Universe1.cameraBound.h) - this.bounds.h) {
-                this.grounded = true;
-                this.bounds.y = Universe1.cameraBound.y+Universe1.cameraBound.h - (this.bounds.h + 1)
-            }
-            if (this.bounds.x + this.bounds.w >= canvas.width/2-90) {
-                this.bounds.x = ((canvas.width/2)-this.bounds.w-90)
-                background.x -= 1
-                this.WALLED = true;
-                this.XVelocity = 0;
-                this.currentFriction = 0;
-            } else {
-                this.WALLED = false;
-            }
-            // setTimeout(() => {
-            //     if (this.WALLED && currentKey.get(" ")) {
-            //         currentWorld = desert
-            //     }
-            // }, 100);
+        if (this.bounds.y >= (canvas.height-2) - this.bounds.h) {
+            this.grounded = true;
+            this.bounds.y = canvas.height- (this.bounds.h + 1)
         }
         if (currentKey.get(" ") && this.grounded) {
             this.grounded = false
@@ -117,13 +84,13 @@ class Player {
         if (currentKey.get("a") || currentKey.get("ArrowLeft")) {
             this.XVelocity -= 0.1
             this.currentFriction = 0
-            this.TotalFrames = 6;
+            this.TotalFrames = 5;
             this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
-             this.FLIPPED = true;
+            this.FLIPPED = true;
         } else if (currentKey.get("d") || currentKey.get("ArrowRight")) {
             this.XVelocity += 0.1
             this.currentFriction = 0
-            this.TotalFrames = 6;
+            this.TotalFrames = 5;
             this.image.src = "./Assets/ChikBoy/ChikBoy_run.png"
             this.FLIPPED = false;
 
@@ -131,12 +98,10 @@ class Player {
             if (this.grounded) {
                 this.YVelocity = 0;
                 if ((Math.floor(Math.round(this.XVelocity)) !== 0)) {
-                    this.TotalFrames = 4;
+                    this.TotalFrames = 3;
                     this.image.src = "./Assets/ChikBoy/ChikBoy_floor_slide.png"
-                    particals = true;
                 } else {
-                    particals = false;
-                    this.TotalFrames = 6;
+                    this.TotalFrames = 5;
                     this.image.src = "./Assets/ChikBoy/ChikBoy_idle.png"
                 }
                 if ((this.XVelocity) !== 0) {
@@ -152,12 +117,14 @@ class Player {
         }
     }
 }
-const SCALE = 3
+const SCALE = 3.04
 const TILE_TO_IMAGE = {
     1:new Image(),
+    2:new Image(),
     3: new Image()
 }
 TILE_TO_IMAGE[1].src = "./Assets/Brick.png"
+TILE_TO_IMAGE[2].src = "./Chest.png"
 TILE_TO_IMAGE[3].src = "./Assets/Chain.png"
 class Layer {
     constructor(layer) {
@@ -168,22 +135,18 @@ class Layer {
             let cell = this.layer.data[i]
             let img = TILE_TO_IMAGE[cell]
             if (cell !== 0) {
-                let x = i % 30
-                let y = Math.floor(i / 30) + 0.75
+                let x = i % 40
+                let y = Math.floor(i / 40)
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(img,x*14*SCALE,y*14*SCALE,14*SCALE,14*SCALE)
             }
         }
     }
 }
-let Universe1 = new World(0,0);
-let Universe2 = new World(canvas.width/2,0);
-let Universe3 = new World(canvas.width/2,canvas.height/2);
-let Universe4 = new World(0,425);
 let background = null
 let chain = null;
+let chests = null;
 let player = new Player();
-let currentWorld = Universe1;
 async function ParseTitleData() {
     const response = await fetch("./TileDATA.json");
     const data = await response.json();
@@ -200,33 +163,33 @@ function keyboardInit() {
 function loop() {
     ctx.fillStyle = 'white'
     ctx.fillRect(0,0,canvas.width,canvas.height)
+
+    let tileX = Math.floor(player.bounds.x / 14 / SCALE)
+    let tileY = Math.floor(player.bounds.y / 14 / SCALE)
+    console.log("player is",tileX,tileY)
+    let left_bottom_cell = chests.layer.data[((tileY+1)*40)+tileX]
+    console.log("left bototm cell",left_bottom_cell)
+    let right_bottom_cell = chests.layer.data[((tileY+1)*40)+tileX+1]
+    console.log("right bottom cell",right_bottom_cell)
+    if (right_bottom_cell === 2) {
+        player.XVelocity = 0;
+        player.bounds.x -= 1
+    }
+
     //BACKGROUND STUFF DRAW ON TOP OF
     background.draw();
     chain.draw();
+    chests.draw();
     //DRAWING EVERYTHING ELSE
-    particalEngine.draw_particles(ctx);
-    particalEngine.update_particles();
-    console.log(particals)
-    if (particals) {
-        particalEngine.start_particles(player.bounds.x+player.bounds.w/2,player.bounds.y+player.bounds.h-20)
-    }
-    player.draw();
     player.update();
-    ctx.strokeStyle = "#228B22"
-    Universe1.draw();
-    ctx.strokeStyle = "#FAD5A5"
-    Universe2.draw();
-    ctx.strokeStyle = "blue"
-    Universe3.draw();
-    ctx.strokeStyle = "black"
-    Universe4.draw();
+    player.draw();
     requestAnimationFrame(loop)
 }
 async function init() {
     data = await ParseTitleData();
-    background = new Layer(data.layers[0],"./Assets/Brick.png");
-    chain = new Layer(data.layers[1],"./Assets/chain.png");
-    console.log(chain)
+    background = new Layer(data.layers[0]);
+    chain = new Layer(data.layers[1]);
+    chests = new Layer(data.layers[2]);
     keyboardInit();
     loop();
 }
