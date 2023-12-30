@@ -12,3 +12,6 @@ Echo Plains - Plains:
 Celestial Abyss - Space:
     Description: A cosmic void with floating islands, radiant nebulae, and breathtaking celestial phenomena. The landscape is both serene and treacherous, with gravity-defying terrain and portals to other dimensions. Enigmatic celestial beings guard the secrets of the universe, posing both allies and challenges to those who venture into the abyss.
 
+
+12/29/23
+    - Added Simple assets and the 4 worlds. Still need to add collision and scrolling. Trying to scroll but dont know how to scroll the whole layer.

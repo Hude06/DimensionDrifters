@@ -2,10 +2,11 @@ import {Rect} from "./RectUtils.js"
 let canvas = document.getElementById("canvas")
 let ctx = canvas.getContext("2d")
 let currentKey = new Map();
+let data = null
 class World {
     constructor(x,y) {
         this.bounds = new Rect(x,y,canvas.width/2,canvas.height/2)
-        this.cameraBound = new Rect(x+25,y+25,canvas.width/2-50,canvas.height/2-50)
+        this.cameraBound = new Rect(x+70,y+70,canvas.width/2-150,canvas.height/2-150)
     }
     draw() {
         ctx.lineWidth = 5
@@ -42,13 +43,12 @@ class Player {
             ctx.save();
             ctx.scale(-1, 1);
             ctx.drawImage(this.image, 0, this.AnimationY, 32, 32, -this.bounds.x - this.bounds.w, this.bounds.y, this.bounds.w, this.bounds.h);
-            ctx.restore(); // Use restore to revert the transformation
+            ctx.restore();
         } else {
             ctx.drawImage(this.image, 0, this.AnimationY, 32, 32, this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
-        }
-        
+        }       
         this.frameRate += this.frameIncerment
-        if (this.AnimationY < this.TotalFrames * 32) {
+        if (this.AnimationY <= this.TotalFrames * 32) {
             if (Math.floor(Math.round(this.frameRate)) === this.frameMax) {
                 this.AnimationY += 32
                 this.frameRate = 0
@@ -64,10 +64,10 @@ class Player {
         if (this.XVelocity > this.maxSpeed) {
             this.XVelocity = this.maxSpeed - 0.1
         }
-        if (currentWorld === desert) {
-            if (this.bounds.y >= (desert.cameraBound.y+370) - this.bounds.h) {
+        if (currentWorld === Universe2) {
+            if (this.bounds.y >= (Universe2.cameraBound.y+Universe2.cameraBound.h) - this.bounds.h) {
                 this.grounded = true;
-                this.bounds.y = (desert.cameraBound.y+370) - (this.bounds.h + 1)
+                this.bounds.y = (Universe2.cameraBound.y+Universe2.cameraBound.h) - (this.bounds.h + 1)
             }
             if (this.bounds.x <= canvas.width/2) {
                 console.log("New WALLED")
@@ -80,28 +80,29 @@ class Player {
             }
             setTimeout(() => {
                 if (this.WALLED && currentKey.get(" ")) {
-                    currentWorld = forest
+                    currentWorld = Universe1
                 }
             }, 100);
         }
-        if (currentWorld === forest) {
-            if (this.bounds.y >= (forest.cameraBound.y+370) - this.bounds.h) {
+        if (currentWorld === Universe1) {
+            if (this.bounds.y >= (Universe1.cameraBound.y+Universe1.cameraBound.h) - this.bounds.h) {
                 this.grounded = true;
-                this.bounds.y = forest.cameraBound.y+370 - (this.bounds.h + 1)
+                this.bounds.y = Universe1.cameraBound.y+Universe1.cameraBound.h - (this.bounds.h + 1)
             }
-            if (this.bounds.x + this.bounds.w >= canvas.width/2) {
-                this.bounds.x = ((canvas.width/2)-this.bounds.w-1)
+            if (this.bounds.x + this.bounds.w >= canvas.width/2-90) {
+                this.bounds.x = ((canvas.width/2)-this.bounds.w-90)
+                background.x -= 1
                 this.WALLED = true;
                 this.XVelocity = 0;
                 this.friction = 0;
             } else {
                 this.WALLED = false;
             }
-            setTimeout(() => {
-                if (this.WALLED && currentKey.get(" ")) {
-                    currentWorld = desert
-                }
-            }, 100);
+            // setTimeout(() => {
+            //     if (this.WALLED && currentKey.get(" ")) {
+            //         currentWorld = desert
+            //     }
+            // }, 100);
         }
         if (currentKey.get(" ") && this.grounded) {
             this.grounded = false
@@ -145,13 +146,46 @@ class Player {
         }
     }
 }
-let forest = new World(0,0);
-let desert = new World(canvas.width/2,0)
-let arctic = new World(canvas.width/2,canvas.height/2)
-let space = new World(0,425)
-let player = new Player();
-let currentWorld = forest;
+const SCALE = 3
 
+const TILE_TO_IMAGE = {
+    1:new Image(),
+    3: new Image()
+}
+TILE_TO_IMAGE[1].src = "./Assets/Brick.png"
+TILE_TO_IMAGE[3].src = "./Assets/Chain.png"
+
+
+class Layer {
+    constructor(layer) {
+        this.layer = layer
+    }
+    draw() {
+        for (let i = 0; i < this.layer.data.length; i++) {
+            let cell = this.layer.data[i]
+            let img = TILE_TO_IMAGE[cell]
+            if (cell !== 0) {
+                let x = i % 30
+                let y = Math.floor(i / 30) + 0.75
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(img,x*14*SCALE,y*14*SCALE,14*SCALE,14*SCALE)
+            }
+        }
+    }
+}
+let Universe1 = new World(0,0);
+let Universe2 = new World(canvas.width/2,0);
+let Universe3 = new World(canvas.width/2,canvas.height/2);
+let Universe4 = new World(0,425);
+let background = null
+let chain = null;
+let player = new Player();
+let currentWorld = Universe1;
+async function ParseTitleData() {
+    const response = await fetch("./TileDATA.json");
+    const data = await response.json();
+    return data
+}
 function keyboardInit() {
     window.addEventListener("keydown", function (event) {
         currentKey.set(event.key, true);
@@ -161,22 +195,28 @@ function keyboardInit() {
     });
 }
 function loop() {
-    ctx.clearRect(0,0,canvas.width,canvas.height)
+    ctx.fillStyle = 'white'
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    background.draw();
+    chain.draw();
     player.draw();
     player.update();
     ctx.strokeStyle = "#228B22"
-    forest.draw();
+    Universe1.draw();
     ctx.strokeStyle = "#FAD5A5"
-    desert.draw();
+    Universe2.draw();
     ctx.strokeStyle = "blue"
-    arctic.draw();
+    Universe3.draw();
     ctx.strokeStyle = "black"
-    space.draw();
-    console.log(currentKey)
+    Universe4.draw();
     requestAnimationFrame(loop)
 }
-function init() {
+async function init() {
+    data = await ParseTitleData();
+    background = new Layer(data.layers[0],"./Assets/Brick.png");
+    chain = new Layer(data.layers[1],"./Assets/chain.png");
+    console.log(chain)
     keyboardInit();
     loop();
 }
-init();
+await init();
