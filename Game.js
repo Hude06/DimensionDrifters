@@ -1,5 +1,5 @@
-import { ParticleSource } from "../Particals.js";
-import {Rect} from "../RectUtils.js"
+import { ParticleSource } from "./Particals.js";
+import {Rect} from "./RectUtils.js"
 let canvas = document.getElementById("canvas")
 let ctx = canvas.getContext("2d")
 let currentKey = new Map();
@@ -8,7 +8,7 @@ class Gost {
     constructor() {
         this.bounds = new Rect(200,10,40,40)
         this.image = new Image();
-        this.image.src = "./Gost.png"
+        this.image.src = "./Assets/Gost.png"
         this.speed = 1;
         this.FLIPPED = false;
     }
@@ -147,9 +147,9 @@ const TILE_TO_IMAGE = {
     4:new Image()
 }
 TILE_TO_IMAGE[1].src = "./Assets/Brick.png"
-TILE_TO_IMAGE[2].src = "./Chest.png"
+TILE_TO_IMAGE[2].src = "./Assets/Chest.png"
 TILE_TO_IMAGE[3].src = "./Assets/Chain.png"
-TILE_TO_IMAGE[4].src = "./Portal.png"
+TILE_TO_IMAGE[4].src = "./Assets/Portal.png"
 class Layer {
     constructor(layer) {
         this.layer = layer
@@ -167,12 +167,24 @@ class Layer {
         }
     }
 }
+class Camera {
+    constructor() {
+        this.bounds = new Rect(10,10,10,10)
+    }
+    draw() {
+
+    }
+    update() {
+
+    }
+}
 let background = null
 let chain = null;
 let chests = null;
 let portals = null;
 let player = new Player();
 let gost = new Gost();
+let camera = new Camera();
 async function ParseTitleData() {
     const response = await fetch("./TileDATA.json");
     const data = await response.json();
@@ -189,7 +201,7 @@ function keyboardInit() {
 function loop() {
     ctx.fillStyle = 'white'
     ctx.fillRect(0,0,canvas.width,canvas.height)
-
+    camera.update();
     let tileX = Math.floor(player.bounds.x / 14 / SCALE)
     let tileY = Math.floor(player.bounds.y / 14 / SCALE)
     let left_bottom_cell = chests.layer.data[((tileY+1)*40)+tileX]
