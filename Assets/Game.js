@@ -1,5 +1,5 @@
-import { ParticleSource } from "./Particals.js";
-import {Rect} from "./RectUtils.js"
+import { ParticleSource } from "../Particals.js";
+import {Rect} from "../RectUtils.js"
 let canvas = document.getElementById("canvas")
 let ctx = canvas.getContext("2d")
 let currentKey = new Map();
@@ -17,7 +17,18 @@ class Gost {
         ctx.drawImage(this.image,this.bounds.x,this.bounds.y,this.bounds.w,this.bounds.h)
     }
     update() {  
-
+        if (player.bounds.x >= this.bounds.x) {
+            this.bounds.x += this.speed
+        }
+        if (player.bounds.x <= this.bounds.x) {
+            this.bounds.x -= this.speed
+        }
+        if (player.bounds.y >= this.bounds.y) {
+            this.bounds.y += this.speed
+        }
+        if (player.bounds.y >= this.bounds.y) {
+            this.bounds.y += this.speed
+        }
     }
 }
 class Player {
@@ -132,11 +143,13 @@ const SCALE = 3.04
 const TILE_TO_IMAGE = {
     1:new Image(),
     2:new Image(),
-    3: new Image()
+    3:new Image(),
+    4:new Image()
 }
 TILE_TO_IMAGE[1].src = "./Assets/Brick.png"
 TILE_TO_IMAGE[2].src = "./Chest.png"
 TILE_TO_IMAGE[3].src = "./Assets/Chain.png"
+TILE_TO_IMAGE[4].src = "./Portal.png"
 class Layer {
     constructor(layer) {
         this.layer = layer
@@ -157,6 +170,7 @@ class Layer {
 let background = null
 let chain = null;
 let chests = null;
+let portals = null;
 let player = new Player();
 let gost = new Gost();
 async function ParseTitleData() {
@@ -178,14 +192,16 @@ function loop() {
 
     let tileX = Math.floor(player.bounds.x / 14 / SCALE)
     let tileY = Math.floor(player.bounds.y / 14 / SCALE)
-    console.log("player is",tileX,tileY)
     let left_bottom_cell = chests.layer.data[((tileY+1)*40)+tileX]
-    console.log("left bototm cell",left_bottom_cell)
     let right_bottom_cell = chests.layer.data[((tileY+1)*40)+tileX+1]
-    console.log("right bottom cell",right_bottom_cell)
     if (right_bottom_cell === 2) {
         player.XVelocity = 0;
-        player.bounds.x -= 1
+        player.bounds.x -= 20;
+        alert("You Got 1 Coin")
+    }
+    if (left_bottom_cell === 2) {
+        player.XVelocity = 0;
+        player.bounds.x += 1
     }
 
     //BACKGROUND STUFF DRAW ON TOP OF
@@ -193,6 +209,7 @@ function loop() {
     chain.draw();
     chests.draw();
     gost.draw();
+    portals.draw();
     gost.update();
     //DRAWING EVERYTHING ELSE
     player.update();
@@ -204,6 +221,8 @@ async function init() {
     background = new Layer(data.layers[0]);
     chain = new Layer(data.layers[1]);
     chests = new Layer(data.layers[2]);
+    console.log(data.layers[3]);
+    portals = new Layer(data.layers[3]);
     keyboardInit();
     loop();
 }
